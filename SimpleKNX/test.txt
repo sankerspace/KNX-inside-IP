@@ -1,0 +1,89 @@
+/etc/init.d/knxd status
+
+sudo systemctl stop knxd.socket
+sudo systemctl stop knxd.service
+------------------------------------------------------------------------------------------------------
+simpleKNX-run configuration [inside simpleKNX folder]
+######Preparation############################################################################
+client:[rasp-1][0:0:0:0:0:ffff:a00:1]
+sudo knxd  -t 0xffc -f 9 -e 1.1.135 -u  /var/run/knx  -c -D -T -R -S -b tpuarts:/dev/ttyKNX1
+
+sudo knxd -t 0xffc -f 9 -e 1.1.135 -u /var/run/knx -c -b tpuarts:/dev/ttyKNX1 --listen-local
+
+sudo knxd  -f 9 -t 0xffc  -e 1.1.135 -b tpuarts:/dev/ttyKNX1  -c  -u /var/run/knx 
+
+[./installtun-1.sh] #optionally,maybe tun interfaces aleread created
+
+######Start following programms at raspberry 2#######
+######knx writer#####################################
+sudo ./server_tun2knx tun1 local:/var/run/knx 1/1/141 
+
+######knx listener####################################
+sudo ./server_knx2tun tun1 local:/var/run/knx 1/1/135 
+
+######TEST FUNCTIONALITY OF TUN2KNX2TUN WITH A PING###
+ping6 ::ffff:172.128.0.2
+
+[sudo chown pi /var/run/knx]
+[sudo chgrp pi /var/run/knx ]
+[./groupwrite local:/var/run/knx 1/1/141 10 11 12 13 14 15]
+-----------------------------------------------------------------------------------------------------
+server:[rasp-2][0:0:0:0:0:ffff:a00:2]
+######Preparation############################################################################
+sudo knxd -t 0xffc -f 9 -e 1.1.141 -c -u /var/run/knx  -c -D -T -R -S -b tpuarts:/dev/ttyKNX0 
+
+sudo knxd -t 0xffc -f 9 -e 1.1.141 -u /var/run/knx -c -b tpuarts:/dev/ttyKNX0 --listen-local
+
+
+sudo knxd  -f 9 -t 0xffc  -e 1.1.141 -b tpuarts:/dev/ttyKNX0  -c  -u /var/run/knx 
+
+
+[./installtun-1.sh] #optionally,maybe tun interfaces aleread created
+######Start following programms at raspberry 2#######
+######knx writer#####################################
+sudo ./server_tun2knx tun1 local:/var/run/knx 1/1/135 
+
+######knx listener####################################
+sudo ./server_knx2tun tun1 local:/var/run/knx 1/1/141 
+
+######TEST FUNCTIONALITY OF TUN2KNX2TUN WITH A PING###
+ping6 ::ffff:172.128.0.1
+
+[sudo chown pi /var/run/knx]
+[sudo chgrp pi /var/run/knx]
+[./grouplisten local:/var/run/knx 1/1/141]
+
+---------------------------------------------------------------------------------_
+delete tun interface:
+
+sudo ip link set tun1 down
+sudo ip tuntap del dev tun1 mode tun
+
+
+-----------------------------------------------------------------------------------
+
+Debugging:
+
+
+sudo gdb --tui --directory=. --args dbgserver_tun2knx tun1 local:/var/run/knx 1/1/141
+sudo gdb --tui --directory=. --args dbgserver_knx2tun tun1 local:/var/run/knx 1/1/135
+   
+
+sudo gdb --tui --directory=. --args dbgserver_tun2knx tun1 local:/var/run/knx 1/1/135
+sudo gdb --tui --directory=. --args dbgserver_knx2tun tun1 local:/var/run/knx 1/1/141
+
+----------------------------------------------------------------------------------------
+Test-KNX Communication:
+client:rasp-1
+server:rasp-2
+
+sudo ./Testwrite-KNX  0     
+sudo ./Testlisten-KNX  0
+
+client:rasp-2
+server:rasp-1
+
+sudo ./Testwrite-KNX  1     
+sudo ./Testlisten-KNX  1
+
+

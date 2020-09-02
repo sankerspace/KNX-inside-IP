@@ -1,0 +1,8 @@
+ipv6-to-KNX-server
+ipv6-to-KNX-server-proto
+*.swp
+*.pyc
+*.o
+.cproject
+.settings
+.project

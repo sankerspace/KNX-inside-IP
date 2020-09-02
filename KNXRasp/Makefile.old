@@ -1,0 +1,45 @@
+
+CC :=g++
+CCC:=arm-linux-gnueabi-g++
+# causes the compiler to auto-detect the architecture of the build computer. -Q -v to your GCC flags to see what optimizations are enabled
+HWFLAGS := -march=native -Q -v 
+CFLAGS := -pedantic -Wall -std=c++11 #-O2
+CPPFLAGS:=
+HEADER_1 := -I $(CROSS)/include #-DHARDWARE=0
+HEADER_2 := -I /usr/include
+LDFLAGS := -L/opt/cross/lib -lboost_iostreams -lboost_system
+LDFLAGS_proto := -L/usr/lib/x86_64-linux-gnu -lboost_iostreams -lboost_system
+
+CUSTOM:=
+CSRC := $(wildcard *.cpp)
+OBJS := $(CSRC:%.cpp=%.o)
+OBJL  := $(wildcard *.o) 
+HDRS := $(wildcard *.hpp)
+
+.PHONY: all
+all: rasp
+rasp: ipv6-to-KNX-server
+	@echo $@
+proto: ipv6-to-KNX-server-proto
+	@echo $@
+
+OBJ-rasp:$(OBJS)
+	$(CCC) $(CFLAGS) ${HEADER_1} -c $<
+
+OBJ-proto:$(OBJS)
+	 $(CC) $(CFLAGS) ${HEADER_2} -c	$<
+
+
+ipv6-to-KNX-server: OBJ-rasp
+	$(CCC) $(CFLAGS)  -o $@ $(OBJL) $(LDFLAGS)
+
+ipv6-to-KNX-server-proto: OBJ-proto
+	$(CC) $(CFLAGS)  -o $@  $(OBJL) $(LDFLAGS_proto)
+
+debug: $(OBJS)
+	$(CC) $(HWFLAGS) $(CFLAGS) -g -o $@ $+
+
+.PHONY: clean
+clean:
+	rm -rf *.o ipv6-to-KNX-server ipv6-to-KNX-server-proto debug
+

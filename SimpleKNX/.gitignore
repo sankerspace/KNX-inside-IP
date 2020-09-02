@@ -1,0 +1,16 @@
+
+
+*.o
+Testwrite-KNX
+Testlisten-KNX
+dbgTestwrite-KNX
+dbgTestread-KNX
+virtualKNX
+server_tun2knx
+server_knx2tun
+dbgserver_tun2knx
+dbgserver_knx2tun
+*.gch
+.cproject
+.project
+.settings
